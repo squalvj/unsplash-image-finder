@@ -6,6 +6,8 @@ import usePhotos from "hooks/usePhotos";
 import Button from "components/Button";
 import Spinner from "components/Spinner";
 import ScrollTrigger from "components/ScrollTrigger";
+import Modal from "components/Modal";
+import ErrorComponent from "components/ErrorComponent";
 
 const DEFAULT_QUERY = {
   query: "",
@@ -13,23 +15,25 @@ const DEFAULT_QUERY = {
 
 function App() {
   const [parameter, setParameter] = useState(DEFAULT_QUERY);
-  const { data, error, isLoading, next } = usePhotos(parameter.query, {
+  const { data, error, loading, hasNext, nextPage, refetch, submit } = usePhotos({
     perPage: 20,
+  });
+  const [activeImage, setActiveImage] = useState({
+    image: "",
+    alt: "",
   });
   const [q, setQ] = useState("");
 
   return (
-    <div className="container">
-      <h1 className="text-4xl font-bold text-center text-gray-800">
-        Picture Finder
-      </h1>
+    <div className="container py-10">
       <form
         onSubmit={(e) => {
           e.preventDefault();
           setParameter((prev) => ({ ...prev, query: q }));
+          submit(parameter.query)
         }}
       >
-        <TextInput value={q} onChange={(val) => setQ(val)} />
+        <TextInput placeholder="Try 'Funny Cats'" value={q} onChange={(val) => setQ(val)} />
         <div className="flex items-center justify-center py-4 sm:p-4">
           <Button size="sm" type="submit">
             Search
@@ -38,10 +42,17 @@ function App() {
       </form>
 
       <div className="py-4">
-        <ScrollTrigger onTrigger={next}>
+        <ScrollTrigger onTrigger={nextPage}>
           <div className="masonry">
             {data.map((photo) => (
-              <figure>
+              <figure
+                onClick={() =>
+                  setActiveImage({
+                    image: photo.urls.full,
+                    alt: photo.alt_description,
+                  })
+                }
+              >
                 <img src={photo.urls.thumb} alt={photo.alt_description} />
                 <figcaption>
                   <span className="mb-2 description">{photo.user.name}</span>
@@ -51,8 +62,18 @@ function App() {
             ))}
           </div>
         </ScrollTrigger>
-        {isLoading && <Spinner />}
+        {loading && <Spinner />}
+
+        {error && !loading && <ErrorComponent onClick={refetch} />}
+
+        {!hasNext && "No More Picture :(" }
       </div>
+
+      <Modal
+        onClose={() => setActiveImage({ image: "", alt: "" })}
+        alt={activeImage.alt}
+        image={activeImage.image}
+      />
     </div>
   );
 }

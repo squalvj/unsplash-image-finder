@@ -31,7 +31,6 @@ code {
 .masonry {
   column-count: 4;
   column-gap: 10px;
-
 }
 
 .masonry img {
@@ -46,6 +45,9 @@ code {
   margin-bottom: 10px;
   break-inside: avoid;
   position: relative;
+}
+.masonry figure:hover {
+  cursor: pointer;
 }
 
 .masonry figure > img {
@@ -78,5 +80,11 @@ code {
     max-width: auto;
     padding-left: 15px;
     padding-right: 15px;
+  }
+}
+
+@media screen and (max-width: 650px) {
+  .masonry {
+    column-count: 1;
   }
 }
