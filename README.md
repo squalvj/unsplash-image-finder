@@ -1,7 +1,7 @@
 ![cats](ss.png)
 
 # Unsplash image finder
-Simple app for searching image through Unsplash repository
+Simple app for searching image through Unsplash repository, [demo](https://squalvj.github.io/unsplash-image-finder)
 
 # Installation
 ## Requirements
