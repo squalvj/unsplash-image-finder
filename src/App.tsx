@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./index.css";
-import { getConfig } from "utils/config";
 import TextInput from "components/TextField";
 import usePhotos from "hooks/usePhotos";
 import Button from "components/Button";
@@ -8,32 +7,42 @@ import Spinner from "components/Spinner";
 import ScrollTrigger from "components/ScrollTrigger";
 import Modal from "components/Modal";
 import ErrorComponent from "components/ErrorComponent";
-
-const DEFAULT_QUERY = {
-  query: "",
-};
+import { getQueryParam } from "utils/url";
 
 function App() {
-  const [parameter, setParameter] = useState(DEFAULT_QUERY);
-  const { data, error, loading, hasNext, nextPage, refetch, submit } = usePhotos({
-    perPage: 20,
-  });
+  const { data, error, loading, hasNext, nextPage, refetch, submit } =
+    usePhotos({
+      perPage: 20,
+    });
   const [activeImage, setActiveImage] = useState({
     image: "",
     alt: "",
+    id: "",
   });
   const [q, setQ] = useState("");
+
+  useEffect(() => {
+    const img = getQueryParam("image");
+    const id = getQueryParam("id");
+    const alt = getQueryParam("alt");
+    if (img && id && alt) {
+      setActiveImage({ alt, image: img, id });
+    }
+  }, []);
 
   return (
     <div className="container py-10">
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          setParameter((prev) => ({ ...prev, query: q }));
-          submit(parameter.query)
+          submit(q);
         }}
       >
-        <TextInput placeholder="Try 'Funny Cats'" value={q} onChange={(val) => setQ(val)} />
+        <TextInput
+          placeholder="Try 'Funny Cats'"
+          value={q}
+          onChange={(val) => setQ(val)}
+        />
         <div className="flex items-center justify-center py-4 sm:p-4">
           <Button size="sm" type="submit">
             Search
@@ -50,6 +59,7 @@ function App() {
                   setActiveImage({
                     image: photo.urls.full,
                     alt: photo.alt_description,
+                    id: photo.id,
                   })
                 }
               >
@@ -66,13 +76,14 @@ function App() {
 
         {error && !loading && <ErrorComponent onClick={refetch} />}
 
-        {!hasNext && "No More Picture :(" }
+        {!hasNext && "No More Picture :("}
       </div>
 
       <Modal
-        onClose={() => setActiveImage({ image: "", alt: "" })}
+        onClose={() => setActiveImage({ image: "", alt: "", id: "" })}
         alt={activeImage.alt}
         image={activeImage.image}
+        id={activeImage.id}
       />
     </div>
   );
