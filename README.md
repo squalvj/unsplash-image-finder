@@ -21,7 +21,9 @@ Run npm start to start the project
 - share functionality
 - favorite image
 - responsive
+- typescript
 
 # Technologies Used
 - React.JS
 - Tailwind.css
+- typescript
