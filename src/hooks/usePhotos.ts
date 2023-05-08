@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { getConfig } from "utils/config";
 
 interface Photo {
@@ -13,41 +13,56 @@ interface Photo {
     name: string;
   };
 }
-
 interface FetchResult {
   data: Photo[];
+  error?: boolean;
   isLoading: boolean;
-  error: Error | unknown;
+  page: number;
+  refetch: () => void;
+  next: () => void;
 }
 
-const usePhotos = (query: string, page = 1, perpage = 10): FetchResult => {
+interface UseFetchOptions {
+  perPage: number;
+}
+
+export default function usePhotos(
+  query: string,
+  options: UseFetchOptions
+): FetchResult {
   const [data, setData] = useState<Photo[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | unknown>(null);
+  const [error, setError] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
 
+  const url = `https://api.unsplash.com/search/photos?page=${page}&per_page=${
+    options.perPage
+  }&query=${query}&client_id=${getConfig("REACT_APP_ACCESS_KEY")}`;
   useEffect(() => {
-    if (query) {
-      const fetchData = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-          const response = await fetch(
-            `https://api.unsplash.com/search/photos?page=${page}&per_page=${perpage}&query=${query}&client_id=${getConfig(
-              "REACT_APP_ACCESS_KEY"
-            )}`
-          );
-          const data = await response.json();
-          setData(data.results);
-        } catch (error) {
-          setError(error);
-        }
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(url);
+        const newData = await response.json();
+        setData((prevData) => [...prevData, ...newData.results]);
+      } catch (_) {
+        setError(true);
+      } finally {
         setIsLoading(false);
-      };
-      fetchData();
-    }
-  }, [query, page, perpage]);
+      }
+    };
 
-  return { data, isLoading, error };
-};
+    fetchData();
+  }, [query, options.perPage, page]);
 
-export default usePhotos;
+  const refetch = () => {
+    setData([]);
+    setPage(1);
+  };
+
+  const next = () => {
+    setPage((prev) => prev + 1);
+  };
+
+  return { data, error, isLoading, page, refetch, next };
+}

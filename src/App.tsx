@@ -4,21 +4,20 @@ import { getConfig } from "utils/config";
 import TextInput from "components/TextField";
 import usePhotos from "hooks/usePhotos";
 import Button from "components/Button";
+import Spinner from "components/Spinner";
+import ScrollTrigger from "components/ScrollTrigger";
 
 const DEFAULT_QUERY = {
   query: "",
-  perpage: 20,
-  page: 1,
 };
 
 function App() {
   const [parameter, setParameter] = useState(DEFAULT_QUERY);
-  const { data, error, isLoading } = usePhotos(
-    parameter.query,
-    parameter.page,
-    parameter.perpage
-  );
+  const { data, error, isLoading, next } = usePhotos(parameter.query, {
+    perPage: 20,
+  });
   const [q, setQ] = useState("");
+
   return (
     <div className="container">
       <h1 className="text-4xl font-bold text-center text-gray-800">
@@ -39,20 +38,20 @@ function App() {
       </form>
 
       <div className="py-4">
-        <div className="masonry">
-          {data.map((photo) => (
-            <figure>
-              <img
-                src={photo.urls.thumb}
-                alt={photo.alt_description}
-              />
-              <figcaption>
-                <span className="mb-2">{photo.user.name}</span>
-                <span className="description">{photo.description}</span>
-              </figcaption>
-            </figure>
-          ))}
-        </div>
+        <ScrollTrigger onTrigger={next}>
+          <div className="masonry">
+            {data.map((photo) => (
+              <figure>
+                <img src={photo.urls.thumb} alt={photo.alt_description} />
+                <figcaption>
+                  <span className="mb-2 description">{photo.user.name}</span>
+                  <span className="description">{photo.description}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </ScrollTrigger>
+        {isLoading && <Spinner />}
       </div>
     </div>
   );

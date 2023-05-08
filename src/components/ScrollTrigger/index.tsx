@@ -1,42 +1,30 @@
-import { FC, useEffect, useRef, ReactNode } from "react";
+import { FC, useEffect, ReactNode } from "react";
 
 interface ScrollTriggerProps {
   onTrigger: () => void;
   children: ReactNode;
 }
 
-const ScrollTrigger: FC<ScrollTriggerProps> = ({ onTrigger, children }) => {
-  const ref = useRef<HTMLDivElement>(null);
+const OFFSET_HEIGHT = 200
 
+const ScrollTrigger: FC<ScrollTriggerProps> = ({ onTrigger, children }) => {
   useEffect(() => {
     const handleScroll = () => {
-      if (ref.current) {
-        const { scrollTop, scrollHeight, clientHeight } = ref.current;
-        const bottomOfPage = scrollTop + clientHeight >= scrollHeight;
-        if (bottomOfPage) {
-          onTrigger();
-        }
+      const { scrollTop, scrollHeight, clientHeight } =
+        document.documentElement;
+      const bottomOfPage = scrollTop + clientHeight >= scrollHeight - OFFSET_HEIGHT;
+      if (bottomOfPage) {
+        onTrigger();
       }
     };
 
-    if (ref.current) {
-      ref.current.addEventListener("scroll", handleScroll);
-    }
+    window.addEventListener("scroll", handleScroll);
     return () => {
-      if (ref.current) {
-        ref.current.removeEventListener("scroll", handleScroll);
-      }
+      window.removeEventListener("scroll", handleScroll);
     };
   }, [onTrigger]);
 
-  return (
-    <div
-      ref={ref}
-      className="overflow-y-auto min-h-[calc(100vh-200px)] max-h-[calc(100vh-200px)] sm:min-h-[500px] sm:max-h-[500px]"
-    >
-      {children}
-    </div>
-  );
+  return <div>{children}</div>;
 };
 
 export default ScrollTrigger;
